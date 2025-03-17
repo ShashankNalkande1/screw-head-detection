@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload for Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-5">
+    <h2 class="text-xl font-bold mb-4">Upload an Image for Detection</h2>
+    <form id="uploadForm" enctype="multipart/form-data" class="bg-white p-4 shadow-md rounded-md">
+        <input type="file" name="image" id="imageInput" required class="border p-2 rounded-md">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Upload</button>
+    </form>
+    <div id="result" class="mt-5"></div>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData();
+            formData.append('image', document.getElementById('imageInput').files[0]);
+            
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    let resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `<img src="${data.image_url}" class="mt-5 border-2 border-gray-500 rounded-md" width="300">`;
+                    
+                    let tableHtml = '<h3 class="text-lg font-bold mt-4">Detection Results</h3>';
+                    tableHtml += '<table class="table-auto border-collapse w-full mt-2">';
+                    tableHtml += '<thead><tr class="bg-gray-200"><th class="border px-4 py-2">Class</th><th class="border px-4 py-2">Confidence</th><th class="border px-4 py-2">X</th><th class="border px-4 py-2">Y</th><th class="border px-4 py-2">Width</th><th class="border px-4 py-2">Height</th></tr></thead><tbody>';
+                    
+                    data.result.predictions.forEach(pred => {
+                        tableHtml += `<tr class="bg-white border">
+                            <td class="border px-4 py-2">${pred.class}</td>
+                            <td class="border px-4 py-2">${(pred.confidence * 100).toFixed(2)}%</td>
+                            <td class="border px-4 py-2">${pred.x}</td>
+                            <td class="border px-4 py-2">${pred.y}</td>
+                            <td class="border px-4 py-2">${pred.width}</td>
+                            <td class="border px-4 py-2">${pred.height}</td>
+                        </tr>`;
+                    });
+                    tableHtml += '</tbody></table>';
+                    
+                    let countHtml = '<h3 class="text-lg font-bold mt-4">Screw Count</h3>';
+                    for (const [key, value] of Object.entries(data.class_counts)) {
+                        countHtml += `<p class="text-gray-700">${key}: <span class="font-bold">${value}</span></p>`;
+                    }
+                    
+                    resultDiv.innerHTML += tableHtml + countHtml;
+                });
+        });
+    </script>
+</body>
+</html>

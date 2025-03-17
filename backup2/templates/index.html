@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-5">
+    <h2 class="text-xl font-bold mb-4">Upload an Image for Detection</h2>
+    <form action="/" method="POST" enctype="multipart/form-data" class="bg-white p-4 shadow-md rounded-md">
+        <input type="file" name="image" required class="border p-2 rounded-md">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Upload</button>
+    </form>
+
+    {% if processed_image %}
+        <div class="mt-5">
+            <h3 class="text-lg font-bold">Detection Results</h3>
+            <img src="{{ url_for('static', filename=processed_image) }}" class="mt-5 border-2 border-gray-500 rounded-md" width="600">
+            <br>
+            <a href="{{ url_for('download') }}" class="bg-green-500 text-white px-4 py-2 rounded-md mt-4 inline-block">Download Processed Image</a>
+        </div>
+    {% endif %}
+</body>
+</html>

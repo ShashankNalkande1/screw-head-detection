@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Image Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-5">
+    <h2 class="text-xl font-bold mb-4">Upload Multiple Images for Detection</h2>
+    <form id="uploadForm" class="bg-white p-4 shadow-md rounded-md">
+        <input type="file" name="images" id="images" multiple required class="border p-2 rounded-md">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Upload and Process</button>
+    </form>
+
+    <div id="results" class="mt-5"></div>
+
+    <script>
+        $(document).ready(function () {
+            $("#uploadForm").on("submit", function (e) {
+                e.preventDefault(); // Prevent the form from submitting normally
+
+                const files = $("#images")[0].files; // Get the selected files
+                const totalFiles = files.length;
+                let processedCount = 0;
+
+                // Clear previous results
+                $("#results").html("");
+
+                // Function to process files one by one with a delay
+                function processNextFile(index) {
+                    if (index >= totalFiles) {
+                        // All files processed
+                        $("#results").append(`<p class="text-green-600">All images processed successfully!</p>`);
+                        return;
+                    }
+
+                    const file = files[index];
+                    const formData = new FormData();
+                    formData.append("image", file);
+
+                    $.ajax({
+                        url: "/process",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            processedCount++;
+                            $("#results").append(`
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-bold">Result for Image ${index + 1}</h3>
+                                    <img src="${response.processed_image}" class="mt-2 border-2 border-gray-500 rounded-md" width="600">
+                                    <br>
+                                    <a href="${response.download_link}" class="bg-green-500 text-white px-4 py-2 rounded-md mt-2 inline-block">Download Processed Image</a>
+                                </div>
+                            `);
+
+                            // Process the next file after 1 second
+                            setTimeout(() => {
+                                processNextFile(index + 1);
+                            }, 1000); // 1-second delay
+                        },
+                        error: function (xhr, status, error) {
+                            $("#results").append(`<p class="text-red-600">Error processing image ${index + 1}: ${xhr.responseText}</p>`);
+
+                            // Continue processing the next file even if there's an error
+                            setTimeout(() => {
+                                processNextFile(index + 1);
+                            }, 1000); // 1-second delay
+                        }
+                    });
+                }
+
+                // Start processing the first file
+                processNextFile(0);
+            });
+        });
+    </script>
+</body>
+</html>
